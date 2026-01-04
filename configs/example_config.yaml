@@ -1,0 +1,78 @@
+# Example training configuration
+# This is a template for creating experiment configs
+
+model:
+  name: "small-transformer"
+  architecture: "gpt2"  # or "bert", "custom", etc.
+  num_layers: 6
+  hidden_size: 512
+  num_attention_heads: 8
+  intermediate_size: 2048
+  vocab_size: 50257
+  max_position_embeddings: 1024
+
+dataset:
+  name: "gsm8k-subset"
+  path: "data/processed/gsm8k_subset"
+  train_split: 0.9
+  max_length: 512
+
+training:
+  learning_rate: 1e-4
+  batch_size: 32
+  num_epochs: 10
+  gradient_accumulation_steps: 1
+  max_grad_norm: 1.0
+  warmup_steps: 100
+  weight_decay: 0.01
+  
+  # Loss configuration
+  loss_type: "cross_entropy"  # or "uncertainty_aware", "sip_like", etc.
+  label_smoothing: 0.0
+
+regime:
+  # Enable regime monitoring and steering
+  enabled: true
+  
+  # Indicators to track
+  indicators:
+    - "gradient_norm"
+    - "loss_volatility"
+    - "activation_statistics"
+  
+  # Thresholds for regime detection
+  thresholds:
+    gradient_norm:
+      warning: 1.0
+      critical: 5.0
+    loss_volatility:
+      warning: 0.1
+      critical: 0.5
+  
+  # Steering policy
+  steering:
+    enabled: true
+    actions:
+      - "adjust_learning_rate"
+      - "adjust_gradient_clipping"
+      - "adjust_data_mix"
+    learning_rate_adjustment: 0.5  # Multiply LR by this when threshold crossed
+
+outer_loop:
+  # Outer-loop optimization (PSO/SA/RL)
+  enabled: false
+  method: "pso"  # or "simulated_annealing", "rl"
+  max_iterations: 50
+  population_size: 20  # for PSO
+
+logging:
+  log_dir: "logs"
+  tensorboard: true
+  wandb: false
+  log_interval: 100
+
+output:
+  checkpoint_dir: "checkpoints"
+  save_interval: 1000
+  keep_last_n: 3
+
